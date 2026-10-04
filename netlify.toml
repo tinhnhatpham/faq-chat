@@ -3,7 +3,10 @@
   base = "widget"
   command = "npm run build"
   publish = "dist"
-  # VITE_API_URL (the Render backend URL) is set in Netlify's environment variables
+
+# Not a secret: the public backend URL, baked into the build by Vite
+[build.environment]
+  VITE_API_URL = "https://faq-chat-api.onrender.com"
 
 [[headers]]
   for = "/admin.html"
