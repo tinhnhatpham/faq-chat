@@ -36,7 +36,7 @@ Riverside Dental demo FAQ.
 | Request over 32 KB (huge fake history) | ✅ 413, nothing sent to Claude |
 | Long history items | ✅ Each cut to 1,500 characters (real replies are shorter) |
 | 31st message in an hour from one IP | ✅ 429 "Too many messages" |
-| Faking the IP header to dodge the limit | ✅ Still 429 |
+| Faking the IP header to dodge the limit (tested live on Render) | ✅ Ignored; a faked Cloudflare IP header is blocked (403) |
 | Public Supabase key reading or writing data | ✅ Reads return nothing, writes refused (Row Level Security) |
 | Admin API without the password / wrong password | ✅ 401 |
 | 10 wrong admin passwords in an hour | ✅ Locked out (429) |
@@ -45,7 +45,9 @@ Riverside Dental demo FAQ.
 
 - **Cost attack:** history sent from the browser had no size limit, so one request could push
   ~1,000,000 characters to Claude. Fixed with a 32 KB request cap and per-message trimming.
-- **Rate limit bypass:** the limiter trusted a header the visitor controls. Fixed with ProxyFix.
+- **Rate limit bypass / shared bucket:** the limiter first trusted a header the visitor controls;
+  the first fix (ProxyFix) then picked a Render-internal address shared by all visitors, found by
+  testing on the live server. Fixed by using Cloudflare's CF-Connecting-IP.
 - **Malformed history crashed the request.** Fixed: invalid items are skipped.
 - **Replies used markdown** (`**bold**`) that showed up as raw asterisks. Fixed in the prompt.
 - **Button color didn't follow admin changes.** Fixed: the chat reports the current color.

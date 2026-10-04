@@ -70,11 +70,6 @@ def health():
     return jsonify({"ok": True})
 
 
-@app.get("/api/debug-ip")  # TEMPORARY: echoes the caller's own proxy headers; remove after checking
-def debug_ip():
-    return jsonify({"client_ip_used_for_limits": client_ip()})
-
-
 @app.get("/api/business/<business_id>")
 def business_info(business_id):
     business = get_business(business_id)
