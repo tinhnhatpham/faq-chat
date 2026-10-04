@@ -8,7 +8,6 @@ from collections import defaultdict
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from werkzeug.middleware.proxy_fix import ProxyFix
 
 load_dotenv()
 
@@ -16,9 +15,6 @@ from claude import ask_claude  # noqa: E402  (needs env loaded first)
 from db import get_business, list_businesses, save_business, save_messages  # noqa: E402
 
 app = Flask(__name__)
-# Behind one hosting proxy: take the client IP the proxy added (the last X-Forwarded-For entry),
-# not the first one, which the visitor can fake to dodge rate limits.
-app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)
 app.config["MAX_CONTENT_LENGTH"] = 32 * 1024  # reject oversized requests before reading them
 CORS(app, origins=os.getenv("ALLOWED_ORIGINS", "*").split(","))
 
@@ -34,7 +30,11 @@ _hits = defaultdict(list)  # (bucket, ip) -> timestamps (resets on restart; fine
 
 
 def client_ip() -> str:
-    return request.remote_addr or ""  # real client IP thanks to ProxyFix above
+    # On Render, requests pass through Cloudflare, which sets CF-Connecting-IP to the real visitor
+    # IP and overwrites any value the visitor sends. X-Forwarded-For can't be used: its first entry
+    # can be faked and its last entries are shared proxy addresses. Locally there's no proxy.
+    # NOTE: only trust this header behind Cloudflare; on another host, revisit this.
+    return request.headers.get("CF-Connecting-IP") or request.remote_addr or ""
 
 
 def recent_hits(key) -> list:
@@ -72,14 +72,7 @@ def health():
 
 @app.get("/api/debug-ip")  # TEMPORARY: echoes the caller's own proxy headers; remove after checking
 def debug_ip():
-    orig = request.environ.get("werkzeug.proxy_fix.orig", {})
-    return jsonify({
-        "remote_addr_after_proxyfix": request.remote_addr,
-        "original_remote_addr": orig.get("REMOTE_ADDR"),
-        "original_x_forwarded_for": orig.get("HTTP_X_FORWARDED_FOR"),
-        "headers": {k: v for k, v in request.headers.items()
-                    if k.lower() in ("x-forwarded-for", "true-client-ip", "cf-connecting-ip", "x-real-ip", "forwarded", "x-forwarded-proto")},
-    })
+    return jsonify({"client_ip_used_for_limits": client_ip()})
 
 
 @app.get("/api/business/<business_id>")
