@@ -70,6 +70,18 @@ def health():
     return jsonify({"ok": True})
 
 
+@app.get("/api/debug-ip")  # TEMPORARY: echoes the caller's own proxy headers; remove after checking
+def debug_ip():
+    orig = request.environ.get("werkzeug.proxy_fix.orig", {})
+    return jsonify({
+        "remote_addr_after_proxyfix": request.remote_addr,
+        "original_remote_addr": orig.get("REMOTE_ADDR"),
+        "original_x_forwarded_for": orig.get("HTTP_X_FORWARDED_FOR"),
+        "headers": {k: v for k, v in request.headers.items()
+                    if k.lower() in ("x-forwarded-for", "true-client-ip", "cf-connecting-ip", "x-real-ip", "forwarded", "x-forwarded-proto")},
+    })
+
+
 @app.get("/api/business/<business_id>")
 def business_info(business_id):
     business = get_business(business_id)
