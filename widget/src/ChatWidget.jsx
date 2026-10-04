@@ -13,6 +13,7 @@ export default function ChatWidget({ businessId }) {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const listRef = useRef(null);
+  const inputRef = useRef(null);
 
   // Load the display info (name, color). The FAQ itself never reaches the browser.
   useEffect(() => {
@@ -21,6 +22,20 @@ export default function ChatWidget({ businessId }) {
       .then(setBusiness)
       .catch(() => setLoadError("This chat is unavailable right now."));
   }, [businessId]);
+
+  // Tell widget.js the current brand color so the chat button matches the database
+  useEffect(() => {
+    if (business && inIframe) window.parent.postMessage({ type: "faq-chat:ready", color: business.color }, "*");
+  }, [business]);
+
+  // widget.js says the chat was opened: put the cursor in the input
+  useEffect(() => {
+    function onMessage(e) {
+      if (e.source === window.parent && e.data?.type === "faq-chat:open") inputRef.current?.focus();
+    }
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, []);
 
   // Keep the newest message in view
   useEffect(() => {
@@ -90,12 +105,13 @@ export default function ChatWidget({ businessId }) {
 
       <form className="fc-form" onSubmit={send}>
         <input
+          ref={inputRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Type your question…"
           maxLength={MAX_LENGTH}
           aria-label="Your question"
-          autoFocus
+          autoFocus={!inIframe}
         />
         <button type="submit" disabled={sending || !input.trim()}>
           Send

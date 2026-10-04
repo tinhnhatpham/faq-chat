@@ -4,12 +4,13 @@ import ChatWidget from "./ChatWidget.jsx";
 
 const businessId = new URLSearchParams(window.location.search).get("business");
 
-createRoot(document.getElementById("root")).render(
-  <StrictMode>
-    {businessId ? (
+if (businessId) {
+  createRoot(document.getElementById("root")).render(
+    <StrictMode>
       <ChatWidget businessId={businessId} />
-    ) : (
-      <p style={{ fontFamily: "sans-serif", padding: 16 }}>Missing ?business=&lt;id&gt; in the URL.</p>
-    )}
-  </StrictMode>
-);
+    </StrictMode>
+  );
+} else {
+  // Someone opened the site root directly: show them the demo instead of an error
+  window.location.replace("/demo.html");
+}
