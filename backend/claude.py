@@ -5,6 +5,9 @@ from anthropic import Anthropic
 client = Anthropic()  # reads ANTHROPIC_API_KEY from the environment
 MODEL = os.getenv("CLAUDE_MODEL", "claude-haiku-4-5-20251001")
 MAX_HISTORY = 10  # only send the last 10 messages to keep cost low
+# History comes from the browser, so it can be forged or oversized. Real replies are under
+# ~1,200 characters (max_tokens=300) and user messages under 500, so this never cuts real chats.
+MAX_HISTORY_ITEM_CHARS = 1500
 
 
 def build_system_prompt(business: dict) -> str:
@@ -26,9 +29,12 @@ FAQ:
 
 def ask_claude(business: dict, history: list, message: str) -> str:
     messages = [
-        {"role": m["role"], "content": m["content"]}
+        {"role": m["role"], "content": m["content"][:MAX_HISTORY_ITEM_CHARS]}
         for m in history[-MAX_HISTORY:]
-        if m.get("role") in ("user", "assistant") and m.get("content")
+        if isinstance(m, dict)
+        and m.get("role") in ("user", "assistant")
+        and isinstance(m.get("content"), str)
+        and m["content"].strip()
     ]
     messages.append({"role": "user", "content": message})
 

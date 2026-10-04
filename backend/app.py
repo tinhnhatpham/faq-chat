@@ -8,6 +8,7 @@ from collections import defaultdict
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 load_dotenv()
 
@@ -15,6 +16,10 @@ from claude import ask_claude  # noqa: E402  (needs env loaded first)
 from db import get_business, list_businesses, save_business, save_messages  # noqa: E402
 
 app = Flask(__name__)
+# Behind one hosting proxy: take the client IP the proxy added (the last X-Forwarded-For entry),
+# not the first one, which the visitor can fake to dodge rate limits.
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)
+app.config["MAX_CONTENT_LENGTH"] = 32 * 1024  # reject oversized requests before reading them
 CORS(app, origins=os.getenv("ALLOWED_ORIGINS", "*").split(","))
 
 MAX_PER_HOUR = int(os.getenv("MAX_MESSAGES_PER_HOUR", "30"))
@@ -29,8 +34,7 @@ _hits = defaultdict(list)  # (bucket, ip) -> timestamps (resets on restart; fine
 
 
 def client_ip() -> str:
-    # First X-Forwarded-For entry can be faked by the client; good enough for v1 limits
-    return request.headers.get("X-Forwarded-For", request.remote_addr or "").split(",")[0].strip()
+    return request.remote_addr or ""  # real client IP thanks to ProxyFix above
 
 
 def recent_hits(key) -> list:
