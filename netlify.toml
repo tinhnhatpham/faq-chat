@@ -1,0 +1,12 @@
+# Netlify: builds the widget app (chat page, admin page, demo page, widget.js)
+[build]
+  base = "widget"
+  command = "npm run build"
+  publish = "dist"
+  # VITE_API_URL (the Render backend URL) is set in Netlify's environment variables
+
+[[headers]]
+  for = "/admin.html"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Robots-Tag = "noindex"
