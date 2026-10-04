@@ -1,0 +1,152 @@
+body {
+  margin: 0;
+  background: #f3f4f6;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 15px;
+  color: #1f2937;
+}
+
+.ad-page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 16px 64px;
+}
+
+.ad-narrow {
+  max-width: 380px;
+}
+
+.ad-page h1 {
+  font-size: 22px;
+  margin: 0 0 20px;
+}
+
+.ad-page h2 {
+  font-size: 17px;
+  margin: 0;
+}
+
+.ad-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.ad-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.ad-page label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.ad-picker {
+  margin-bottom: 16px;
+}
+
+.ad-page input,
+.ad-page select,
+.ad-page textarea {
+  padding: 9px 11px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 400;
+  background: #fff;
+}
+
+.ad-page input[type="color"] {
+  width: 64px;
+  height: 40px;
+  padding: 3px;
+}
+
+.ad-page input:disabled {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.ad-page textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.ad-page button {
+  align-self: flex-start;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  background: #111827;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ad-page button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.ad-page .ad-link {
+  padding: 0;
+  background: none;
+  color: #374151;
+  font-weight: 400;
+  text-decoration: underline;
+}
+
+.ad-hint {
+  font-weight: 400;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.ad-count {
+  align-self: flex-end;
+}
+
+.ad-error,
+.ad-ok {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.ad-error {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.ad-ok {
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.ad-code {
+  margin: 0;
+  padding: 12px;
+  background: #111827;
+  color: #e5e7eb;
+  border-radius: 8px;
+  font-size: 13px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.ad-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
