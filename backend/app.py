@@ -16,7 +16,11 @@ from db import get_business, list_businesses, save_business, save_messages  # no
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 32 * 1024  # reject oversized requests before reading them
-CORS(app, origins=os.getenv("ALLOWED_ORIGINS", "*").split(","))
+# The demo's own public address is always allowed; ALLOWED_ORIGINS adds others (comma-separated).
+# For a client deployment, change SITE_ORIGIN to the client's chat address.
+SITE_ORIGIN = "https://chat.logicagentry.com"
+_origins = [o.strip().rstrip("/") for o in os.getenv("ALLOWED_ORIGINS", "*").split(",") if o.strip()]
+CORS(app, origins=_origins if "*" in _origins else _origins + [SITE_ORIGIN])
 
 MAX_PER_HOUR = int(os.getenv("MAX_MESSAGES_PER_HOUR", "30"))
 MAX_MESSAGE_LENGTH = 500
