@@ -1,7 +1,9 @@
 /*
  * FAQ Chat embed script. A business adds this to its site:
  *   <script src="https://YOUR-WIDGET-HOST/widget.js" data-business="riverside-dental" data-color="#0f766e"></script>
- * It adds a chat button that opens the chat page in an iframe.
+ * It adds a chat button that opens the chat page in an iframe. The page can also call
+ * FAQChat.open("question") to open the chat with a question typed in, or FAQChat.ask("question")
+ * to open it and ask straight away.
  * data-color is only the starting button color: the chat reports the business's current
  * color from the database once it loads, so changing it in the admin page needs no re-paste.
  * Plain JavaScript on purpose: no build step or framework needed on the business's site.
@@ -45,12 +47,20 @@
   document.body.appendChild(iframe);
   document.body.appendChild(button);
 
-  function toggle(show) {
+  function toggle(show, question, send) {
     open = show;
     iframe.style.display = show ? "block" : "none";
-    if (show) iframe.contentWindow.postMessage({ type: "faq-chat:open" }, widgetOrigin);
+    if (show) iframe.contentWindow.postMessage({ type: "faq-chat:open", question: question || "", send: !!send }, widgetOrigin);
     button.setAttribute("aria-label", show ? "Close chat" : "Open chat");
   }
+
+  // For the host page's own buttons: FAQChat.open("Do you take Cigna?") opens the chat with
+  // that question typed in; FAQChat.ask("Do you take Cigna?") opens it and asks right away
+  window.FAQChat = {
+    open: function (question) { toggle(true, typeof question === "string" ? question : ""); },
+    ask: function (question) { toggle(true, typeof question === "string" ? question : "", true); },
+    close: function () { toggle(false); },
+  };
 
   // Messages from the chat page (only trusted from our own origin)
   window.addEventListener("message", function (e) {

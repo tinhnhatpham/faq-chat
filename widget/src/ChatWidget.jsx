@@ -12,6 +12,7 @@ export default function ChatWidget({ businessId }) {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
+  const [queued, setQueued] = useState(""); // question sent in by the host page
   const listRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -28,23 +29,39 @@ export default function ChatWidget({ businessId }) {
     if (business && inIframe) window.parent.postMessage({ type: "faq-chat:ready", color: business.color }, "*");
   }, [business]);
 
-  // widget.js says the chat was opened: put the cursor in the input
+  // widget.js says the chat was opened: put the cursor in the input. The host page can pass a
+  // question: with send it's asked right away (the visitor clicked a "question" button on the
+  // page), otherwise it's only typed in for the visitor to send.
   useEffect(() => {
     function onMessage(e) {
-      if (e.source === window.parent && e.data?.type === "faq-chat:open") inputRef.current?.focus();
+      if (e.source !== window.parent || e.data?.type !== "faq-chat:open") return;
+      const question = typeof e.data.question === "string" ? e.data.question.trim().slice(0, MAX_LENGTH) : "";
+      if (question && e.data.send) setQueued(question);
+      else if (question) setInput(question);
+      inputRef.current?.focus();
     }
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
   }, []);
+
+  // Ask a queued question once the business has loaded and no reply is pending
+  useEffect(() => {
+    if (!queued || !business || sending) return;
+    setQueued("");
+    sendText(queued);
+  }, [queued, business, sending]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Keep the newest message in view
   useEffect(() => {
     listRef.current?.scrollTo(0, listRef.current.scrollHeight);
   }, [messages, sending]);
 
-  async function send(e) {
+  function send(e) {
     e.preventDefault();
-    const text = input.trim();
+    sendText(input.trim());
+  }
+
+  async function sendText(text) {
     if (!text || sending) return;
 
     const history = messages;

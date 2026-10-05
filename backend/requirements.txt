@@ -4,3 +4,4 @@ anthropic>=0.40.0
 python-dotenv==1.0.1
 gunicorn==22.0.0
 supabase>=2.32,<3
+httpx>=0.26,<1  # used directly in db.py (also installed by supabase)
